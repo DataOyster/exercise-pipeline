@@ -1,5 +1,5 @@
 steps:
-  # 1) Build dell'immagine
+  # 1) Build immagine
   - name: gcr.io/cloud-builders/docker
     dir: exercise-producer
     args:
@@ -10,7 +10,7 @@ steps:
         "."
       ]
 
-  # 2) Push su Artifact Registry (necessario prima del deploy)
+  # 2) Push su Artifact Registry (deve avvenire prima del deploy!)
   - name: gcr.io/cloud-builders/docker
     dir: exercise-producer
     args:
@@ -19,7 +19,7 @@ steps:
         "${_REGION}-docker.pkg.dev/$PROJECT_ID/${_AR_REPO}/${_IMAGE}:$SHORT_SHA"
       ]
 
-  # 3) Deploy su Cloud Run usando quel tag
+  # 3) Deploy su Cloud Run
   - name: gcr.io/google.com/cloudsdktool/cloud-sdk
     dir: exercise-producer
     entrypoint: gcloud
@@ -36,6 +36,10 @@ steps:
         "managed",
         "--allow-unauthenticated"
       ]
+
+# (opzionale, puoi anche rimuovere questa sezione)
+images:
+  - "${_REGION}-docker.pkg.dev/$PROJECT_ID/${_AR_REPO}/${_IMAGE}:$SHORT_SHA"
 
 substitutions:
   _REGION: "europe-north2"
