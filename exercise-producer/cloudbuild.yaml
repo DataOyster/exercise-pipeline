@@ -1,0 +1,42 @@
+steps:
+  - name: gcr.io/cloud-builders/docker
+    dir: exercise-producer
+    args:
+      [
+        "build",
+        "-t",
+        "${_REGION}-docker.pkg.dev/$PROJECT_ID/${_AR_REPO}/${_IMAGE}:$SHORT_SHA",
+        "."
+      ]
+  - name: gcr.io/google.com/cloudsdktool/cloud-sdk
+    dir: exercise-producer
+    entrypoint: gcloud
+    args:
+      [
+        "run",
+        "deploy",
+        "${_SERVICE}",
+        "--image",
+        "${_REGION}-docker.pkg.dev/$PROJECT_ID/${_AR_REPO}/${_IMAGE}:$SHORT_SHA",
+        "--region",
+        "${_REGION}",
+        "--platform",
+        "managed",
+        "--allow-unauthenticated"
+      ]
+
+images:
+  - "${_REGION}-docker.pkg.dev/$PROJECT_ID/${_AR_REPO}/${_IMAGE}:$SHORT_SHA"
+
+substitutions:
+  _REGION: europe-north2
+  _AR_REPO: ingestion-pipeline
+  _IMAGE: exercise-producer
+  _SERVICE: exercise-producer
+  _DEFAULT_NAME: Student
+  _SECRET_NAME: EXERCISE_SECRET
+
+# (facoltativo) log bucket
+# logsBucket: gs://my-demo-bucket-fabio
+options:
+  logging: CLOUD_LOGGING_ONLY
