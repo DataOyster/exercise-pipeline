@@ -1,4 +1,5 @@
 steps:
+  # 1) Build dell'immagine
   - name: gcr.io/cloud-builders/docker
     dir: exercise-producer
     args:
@@ -8,6 +9,17 @@ steps:
         "${_REGION}-docker.pkg.dev/$PROJECT_ID/${_AR_REPO}/${_IMAGE}:$SHORT_SHA",
         "."
       ]
+
+  # 2) Push su Artifact Registry (necessario prima del deploy)
+  - name: gcr.io/cloud-builders/docker
+    dir: exercise-producer
+    args:
+      [
+        "push",
+        "${_REGION}-docker.pkg.dev/$PROJECT_ID/${_AR_REPO}/${_IMAGE}:$SHORT_SHA"
+      ]
+
+  # 3) Deploy su Cloud Run usando quel tag
   - name: gcr.io/google.com/cloudsdktool/cloud-sdk
     dir: exercise-producer
     entrypoint: gcloud
@@ -25,18 +37,13 @@ steps:
         "--allow-unauthenticated"
       ]
 
-images:
-  - "${_REGION}-docker.pkg.dev/$PROJECT_ID/${_AR_REPO}/${_IMAGE}:$SHORT_SHA"
-
 substitutions:
-  _REGION: europe-north2
-  _AR_REPO: ingestion-pipeline
-  _IMAGE: exercise-producer
-  _SERVICE: exercise-producer
-  _DEFAULT_NAME: Student
-  _SECRET_NAME: EXERCISE_SECRET
+  _REGION: "europe-north2"
+  _AR_REPO: "ingestion-pipeline"
+  _IMAGE: "exercise-producer"
+  _SERVICE: "exercise-producer"
+  _DEFAULT_NAME: "Student"
+  _SECRET_NAME: "EXERCISE_SECRET"
 
-# (facoltativo) log bucket
-# logsBucket: gs://my-demo-bucket-fabio
 options:
   logging: CLOUD_LOGGING_ONLY
