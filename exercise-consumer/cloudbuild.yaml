@@ -6,7 +6,7 @@ steps:
       - 'exercise-consumer/Dockerfile'
       - '-t'
       - '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_AR_REPO}/${_IMAGE}:$SHORT_SHA'
-      - '.'
+      - 'exercise-consumer'
 
   - name: 'gcr.io/cloud-builders/docker'
     args:
