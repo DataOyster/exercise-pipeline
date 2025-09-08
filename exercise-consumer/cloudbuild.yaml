@@ -3,7 +3,7 @@ steps:
     args:
       - build
       - '-f'
-      - 'exercise-producer/cloudbuild.yaml'
+      - 'exercise-consumer/Dockerfile'
       - '-t'
       - '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_AR_REPO}/${_IMAGE}:$SHORT_SHA'
       - 'exercise-consumer'
