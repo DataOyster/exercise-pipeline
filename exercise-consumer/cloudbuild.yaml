@@ -36,6 +36,6 @@ substitutions:
   _BUCKET: my-demo-bucket-1337
   _FOLDER: exercise/
 
-logsBucket: gs://my-demo-bucket-fabio
+
 options:
   logging: CLOUD_LOGGING_ONLY
