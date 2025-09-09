@@ -1,46 +1,44 @@
-import os, json, logging
-from datetime import datetime, timezone
-from typing import Any, Dict
-
-from dotenv import load_dotenv
 from fastapi import FastAPI, Request, HTTPException
 from google.cloud import storage
+import os
+import json
+from datetime import datetime
 
-load_dotenv()
+app = FastAPI()
 
-BUCKET = os.getenv("BUCKET")
+# Get bucket and folder from environment variables
+BUCKET_NAME = os.getenv("BUCKET")
 FOLDER = os.getenv("FOLDER", "exercise/")
-
-app = FastAPI(title="Exercise Consumer", version="1.0.0")
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger("consumer")
-
 
 @app.get("/")
 def root():
-    return {"service": "exercise-consumer", "bucket": BUCKET, "folder": FOLDER}
-
-
-@app.get("/health")
-def health():
-    return {"status": "ok", "has_bucket": bool(BUCKET)}
-
+    return {"service": "exercise-consumer", "version": "1.0.0"}
 
 @app.post("/write")
 async def write(request: Request):
-    if not BUCKET:
-        raise HTTPException(status_code=500, detail="BUCKET not configured")
+    try:
+        # Parse JSON body
+        body = await request.json()
+        name = body.get("name", "unknown")
+        demo = body.get("demo", False)
 
-    payload: Dict[str, Any] = await request.json()
-    now = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
-    name = payload.get("name", "unknown")
-    dest = f"{FOLDER.rstrip('/')}/{now}_{name}.json"
+        # Init GCS client
+        client = storage.Client()
+        bucket = client.bucket(BUCKET_NAME)
 
-    client = storage.Client()
-    bucket = client.bucket(BUCKET)
-    blob = bucket.blob(dest)
-    data = json.dumps(payload, ensure_ascii=False).encode("utf-8")
+        # Unique filename
+        filename = f"{FOLDER}{name}_{datetime.utcnow().isoformat()}.json"
+        blob = bucket.blob(filename)
 
-    logger.info("Writing object gs://%s/%s", BUCKET, dest)
-    blob.upload_from_string(data, content_type="application/json")
-    return {"status": "ok", "gcs": f"gs://{BUCKET}/{dest}"}
+        # Upload to GCS
+        blob.upload_from_string(
+            json.dumps(
+                {"name": name, "demo": demo, "timestamp": datetime.utcnow().isoformat()}
+            ),
+            content_type="application/json",
+        )
+
+        return {"status": "ok", "file": filename}
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
