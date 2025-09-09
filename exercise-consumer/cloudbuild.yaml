@@ -33,7 +33,7 @@ substitutions:
   _AR_REPO: ingestion-pipeline
   _IMAGE: exercise-consumer
   _SERVICE: exercise-consumer
-  _BUCKET: my-demo-bucket-1337
+  _BUCKET: my-demo-bucket-fabio
   _FOLDER: exercise/
 
 
